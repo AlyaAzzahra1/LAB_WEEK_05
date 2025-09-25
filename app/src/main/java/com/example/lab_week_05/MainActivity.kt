@@ -2,11 +2,14 @@ package com.example.lab_week_05
 
 import android.os.Bundle
 import android.util.Log
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import com.example.lab_week_05.api.CatApiService
 import com.example.lab_week_05.model.ImageData
+import com.example.lab_week_05.util.GlideLoader
+import com.example.lab_week_05.util.ImageLoader
 import retrofit2.*
 import retrofit2.converter.moshi.MoshiConverterFactory
 
@@ -28,6 +31,16 @@ class MainActivity : AppCompatActivity() {
     // --- TextView untuk menampilkan response ---
     private val apiResponseView: TextView by lazy {
         findViewById(R.id.api_response)
+    }
+
+    // --- ImageView untuk menampilkan gambar ---
+    private val imageResultView: ImageView by lazy {
+        findViewById(R.id.image_result)
+    }
+
+    // --- ImageLoader pakai Glide ---
+    private val imageLoader: ImageLoader by lazy {
+        GlideLoader(this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,7 +65,14 @@ class MainActivity : AppCompatActivity() {
             ) {
                 if (response.isSuccessful) {
                     val image = response.body()
-                    val firstImage = image?.firstOrNull()?.imageUrl ?: "No URL"
+                    val firstImage = image?.firstOrNull()?.imageUrl.orEmpty()
+
+                    if (firstImage.isNotBlank()) {
+                        imageLoader.loadImage(firstImage, imageResultView)
+                    } else {
+                        Log.d(MAIN_ACTIVITY, "Missing image URL")
+                    }
+
                     apiResponseView.text =
                         getString(R.string.image_placeholder, firstImage)
                 } else {
