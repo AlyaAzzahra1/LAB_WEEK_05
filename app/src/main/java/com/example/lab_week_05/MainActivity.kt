@@ -15,7 +15,6 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 
 class MainActivity : AppCompatActivity() {
 
-    // --- Retrofit instance pakai Moshi ---
     private val retrofit by lazy {
         Retrofit.Builder()
             .baseUrl("https://api.thecatapi.com/v1/")
@@ -23,22 +22,18 @@ class MainActivity : AppCompatActivity() {
             .build()
     }
 
-    // --- CatApiService instance ---
     private val catApiService by lazy {
         retrofit.create(CatApiService::class.java)
     }
 
-    // --- TextView untuk menampilkan response ---
     private val apiResponseView: TextView by lazy {
         findViewById(R.id.api_response)
     }
 
-    // --- ImageView untuk menampilkan gambar ---
     private val imageResultView: ImageView by lazy {
         findViewById(R.id.image_result)
     }
 
-    // --- ImageLoader pakai Glide ---
     private val imageLoader: ImageLoader by lazy {
         GlideLoader(this)
     }
@@ -48,7 +43,6 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
 
-        // panggil API saat activity dibuat
         getCatImageResponse()
     }
 
@@ -65,16 +59,23 @@ class MainActivity : AppCompatActivity() {
             ) {
                 if (response.isSuccessful) {
                     val image = response.body()
-                    val firstImage = image?.firstOrNull()?.imageUrl.orEmpty()
+                    val firstImage = image?.firstOrNull()
 
-                    if (firstImage.isNotBlank()) {
-                        imageLoader.loadImage(firstImage, imageResultView)
+                    val imageUrl = firstImage?.imageUrl.orEmpty()
+
+                    val breedName = if (!firstImage?.breeds.isNullOrEmpty()) {
+                        firstImage?.breeds?.firstOrNull()?.name ?: "Unknown"
+                    } else {
+                        "Unknown"
+                    }
+
+                    if (imageUrl.isNotBlank()) {
+                        imageLoader.loadImage(imageUrl, imageResultView)
                     } else {
                         Log.d(MAIN_ACTIVITY, "Missing image URL")
                     }
 
-                    apiResponseView.text =
-                        getString(R.string.image_placeholder, firstImage)
+                    apiResponseView.text = getString(R.string.breed_placeholder, breedName)
                 } else {
                     Log.e(
                         MAIN_ACTIVITY,
